@@ -236,6 +236,8 @@ public partial class SimpleGrid /*: MonoBehaviour*/
         //Ortho neighbors of active cell (for ladder logic)
         var orthoNeighbs1 = GetOrthoNeighbors(activeCell);
 
+        //COMMENTS
+
         //Ladder logic, incorporating ladder neighbors to neighbors
         List<Cell> jumpPathEnds = new List<Cell>();
         Cell lastStep = new Cell(this);

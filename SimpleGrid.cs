@@ -158,7 +158,6 @@ public partial class SimpleGrid /*: MonoBehaviour*/
         }
     }
 
-
     public IEnumerator GamePlay(Material team1, Material team2)
     {
 

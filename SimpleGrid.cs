@@ -224,143 +224,79 @@ public partial class SimpleGrid /*: MonoBehaviour*/
         }
     }
 
+    public bool getBestOrthoNeighbor(Cell activeCell, out List<Cell> listNeighbors)
+    {
+        listNeighbors = new List<Cell>();
+
+        int count = 0;
+
+        bool runComplete = false;
+
+        List<Cell> partialNeighbors = new List<Cell>();
+        List<Cell> totalNeighbors = new List<Cell>();
+        List<Vector3> usedPos = new List<Vector3>();
+        int newNeighbors = 0;
+
+        if (count == 0)
+        {
+            partialNeighbors = GetOrthoNeighbors(activeCell);
+            for (int i = 0; i < partialNeighbors.Count; i++)
+            {
+                usedPos.Add(partialNeighbors[i].WorldPosition);
+                totalNeighbors.Add(partialNeighbors[i]);
+                listNeighbors.Add(partialNeighbors[i]);
+                newNeighbors++;
+            }
+            //Debug.Log("Round_" + count.ToString() + "_newNeighs_" + newNeighbors);
+        }
+
+        while (newNeighbors > 0)
+        {
+            int cNN = 0;
+            for (int i = 0; i < newNeighbors; i++)
+            {
+                partialNeighbors = GetOrthoNeighbors(totalNeighbors[i + count]);
+                for (int j = 0; j < partialNeighbors.Count; j++)
+                {
+                    var currentDude = partialNeighbors[j];
+                    if (!usedPos.Contains(partialNeighbors[j].WorldPosition))
+                    {
+                        usedPos.Add(currentDude.WorldPosition);
+                        totalNeighbors.Add(currentDude);
+                        cNN++;
+                    }
+                }
+            }
+            count++;
+            newNeighbors = cNN;
+            //Debug.Log("Round_" + count.ToString() + "_newNeighs_" + newNeighbors);
+        }
+
+       // Debug.Log("totalNeighbors" + totalNeighbors.Count.ToString());
+        listNeighbors.AddRange(totalNeighbors);
+        runComplete = true;
+
+        return runComplete;
+    }
+
     //Changes the state of the whole array depending on the move 'turn'
     public void MakeMove(Cell activeCell)
     {
         var neighbors = GetNeighbors(activeCell);
         Cell neighborCell = new Cell(this);
 
-        int index = Random.Range(0, neighbors.Count);
-        var selectedNeighbor = neighbors[index];
-
-        //Ortho neighbors of active cell (for ladder logic)
-        var orthoNeighbs1 = GetOrthoNeighbors(activeCell);
-
-        //COMMENTS
-
         //Ladder logic, incorporating ladder neighbors to neighbors
-        List<Cell> jumpPathEnds = new List<Cell>();
         Cell lastStep = new Cell(this);
-        for (int i = 0; i < orthoNeighbs1.Count; i++)
+
+        List<Cell> neighborList;
+        if (getBestOrthoNeighbor(activeCell, out neighborList))
         {
-            List<Cell> path = new List<Cell>();
-
-            if (orthoNeighbs1[i].IsActive)
+            if (neighborList.Count > 0)
             {
-                var orthoNeighbs2 = GetOrthoNeighbors(orthoNeighbs1[i]);
-                for (int j = 0; j < orthoNeighbs2.Count; j++)
-                {
-                    if (orthoNeighbs2[j].IsActive == false && (orthoNeighbs2[j].WorldPosition != orthoNeighbs1[i].WorldPosition))
-                    {
-                        path.Add(orthoNeighbs2[j]);
-                        // round 2
-                        var orthoNeighbs3 = GetOrthoNeighbors(orthoNeighbs2[j]);
-                        for (int k = 0; k < orthoNeighbs3.Count; k++)
-                        {
-                            if (orthoNeighbs3[k].IsActive)
-                            {
-                                var orthoNeighbs4 = GetOrthoNeighbors(orthoNeighbs3[k]);
-
-                                for (int m = 0; m < orthoNeighbs4.Count; m++)
-                                {
-                                    if (orthoNeighbs4[m].IsActive == false && (orthoNeighbs3[k].WorldPosition != orthoNeighbs2[j].WorldPosition))
-                                    {
-                                        path.Add(orthoNeighbs4[m]);/////
-                                        var orthoNeighbs5 = GetOrthoNeighbors(orthoNeighbs4[m]);
-                                        for (int n = 0; n < orthoNeighbs5.Count; n++)
-                                        {
-                                            if (orthoNeighbs5[n].IsActive)
-                                            {
-                                                var orthoNeighbs6 = GetOrthoNeighbors(orthoNeighbs5[n]);
-
-                                                for (int p = 0; p < orthoNeighbs6.Count; p++)
-                                                {
-                                                    if (orthoNeighbs6[p].IsActive == false && (orthoNeighbs5[n].WorldPosition != orthoNeighbs4[m].WorldPosition))
-                                                    {
-                                                        path.Add(orthoNeighbs6[p]);/////
-                                                        var orthoNeighbs7 = GetOrthoNeighbors(orthoNeighbs6[p]);
-                                                        for (int q = 0; q < orthoNeighbs7.Count; q++)
-                                                        {
-                                                            if (orthoNeighbs7[q].IsActive)
-                                                            {
-                                                                var orthoNeighbs8 = GetOrthoNeighbors(orthoNeighbs7[q]);
-
-                                                                for (int r = 0; r < orthoNeighbs8.Count; r++)
-                                                                {
-                                                                    if (orthoNeighbs8[r].IsActive == false && (orthoNeighbs7[q].WorldPosition != orthoNeighbs6[p].WorldPosition))
-                                                                    {
-                                                                        path.Add(orthoNeighbs8[r]);/////
-                                                                        var orthoNeighbs9 = GetOrthoNeighbors(orthoNeighbs8[r]);
-                                                                        for (int s = 0; s < orthoNeighbs9.Count; s++)
-                                                                        {
-                                                                            if (orthoNeighbs9[s].IsActive)
-                                                                            {
-                                                                                var orthoNeighbs10 = GetOrthoNeighbors(orthoNeighbs9[s]);
-
-                                                                                for (int t = 0; t < orthoNeighbs10.Count; t++)
-                                                                                {
-                                                                                    if (orthoNeighbs10[t].IsActive == false && (orthoNeighbs9[s].WorldPosition != orthoNeighbs8[r].WorldPosition))
-                                                                                    {
-                                                                                        path.Add(orthoNeighbs10[t]);/////
-                                                                                        var orthoNeighbs11 = GetOrthoNeighbors(orthoNeighbs10[t]);
-                                                                                        for (int u = 0; u < orthoNeighbs11.Count; u++)
-                                                                                        {
-                                                                                            if (orthoNeighbs11[u].IsActive)
-                                                                                            {
-                                                                                                var orthoNeighbs12 = GetOrthoNeighbors(orthoNeighbs11[u]);
-
-                                                                                                for (int v = 0; v < orthoNeighbs12.Count; v++)
-                                                                                                {
-                                                                                                    if (orthoNeighbs12[v].IsActive == false && (orthoNeighbs11[u].WorldPosition != orthoNeighbs10[t].WorldPosition))
-                                                                                                    {
-                                                                                                        path.Add(orthoNeighbs10[t]);/////
-                                                                                                    }
-                                                                                                }
-
-                                                                                            }
-                                                                                            else continue;
-                                                                                        }
-                                                                                    }
-                                                                                    else continue;
-                                                                                }
-
-                                                                            }
-                                                                            else continue;
-                                                                        }
-                                                                    }
-                                                                    else continue;
-                                                                }
-                                                            }
-                                                            else continue;
-                                                        }
-                                                    }
-                                                    else continue;
-                                                }
-                                            }
-                                            else continue;
-                                        }
-                                    }
-                                    else continue;
-                                }
-                            }
-                            else continue;
-                        }
-                    }
-                    else continue;
-                }
+                lastStep = neighborList[neighborList.Count - 1];
+                neighbors.Add(lastStep);
             }
-            if (path.Count >= 1)
-
-            {
-                lastStep = path[path.Count - 1];
-                jumpPathEnds.Add(lastStep);
-            }
-
-            else continue;
-
         }
-
-        neighbors.AddRange(jumpPathEnds);
 
         //Pick best neighbor 
         if (activeCell.Target == "T2")
